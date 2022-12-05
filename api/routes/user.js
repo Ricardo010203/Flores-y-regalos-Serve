@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 const mysqlConection = require('../conecctions/conecction');
 
 router.get('/', (req,res) =>{
-    mysqlConection.query('select * from users', (err,rows,fields) =>{
+    mysqlConection.query('select * from users where habilitado = 1', (err,rows,fields) =>{
         if(!err){
             res.json(rows);
         }else{
@@ -28,7 +28,7 @@ router.get('/:id', (req,res) =>{
 
 router.delete('/:id', (req,res) => {
     const {id} = req.params;
-    mysqlConection.query(`delete from users where id = '${id}'`, [id], (err,rows,fields) =>{
+    mysqlConection.query(`update users set habilitado=0 where id = '${id}'`, [id], (err,rows,fields) =>{
         if(!err){
             res.json('Usuario eliminado');
         }else{
@@ -36,6 +36,17 @@ router.delete('/:id', (req,res) => {
         }
     })
 });
+/*
+router.delete('/:id', (req,res) => {
+    const {id} = req.params;
+    mysqlConection.query(`delete from users where id = '${id}'`, [id], (err,rows,fields) =>{
+        if(!err){
+            res.json('Usuario eliminado');
+        }else{
+            console.log(err);
+        }
+    })
+});*/
 
 router.put('/:id', (req,res) => {
     const {id} = req.params;
@@ -69,8 +80,8 @@ router.post('/singin', async (req,res) =>{
     const {user, password} = req.body;
     mysqlConection.query('select * from users where user=?',
     [user],
-      (err,rows,field) =>{
-            if(rows.length > 0 /*& !(bcrypt.compareSync(password,rows[0].password))*/){
+      async (err,rows,field) =>{
+            if(rows.length > 0 & ( bcrypt.compareSync(password,rows[0].password))){
                 let data = JSON.stringify(rows[0]);
                  console.log(data);
                  token = jwt.sign(data,'stil');
@@ -79,24 +90,6 @@ router.post('/singin', async (req,res) =>{
                 res.json('Usuario y/o contraseña incorrectos');
             }
     })
-    /* const {user, password} = req.body;
-    mysqlConection.query('select * from users where user=? and password=?',
-    [user,password],
-    (err,rows,field) =>{
-        if(!err){
-            if(rows.length > 0){
-                let data = JSON.stringify(rows[0]);
-                console.log(data);
-                 token = jwt.sign(data,'stil');
-                res.json({token});
-            }else{
-                res.json('Usuario y/o contraseña incorrectos');
-            }
-            
-        }else{
-            console.log(err);
-        }
-    })*/
 });
 
 router.post('/rol', async (req,res) =>{
@@ -115,17 +108,22 @@ router.post('/rol', async (req,res) =>{
    
 });
 
+
 router.post('/test', verifyToken,(req,res) =>{
     res.json('Informacion secreta');
 });
 
+/*
 router.post('/comparar', async(req,res) =>{
-    const hash = '$2a$10$qy6V.jb1A26qG/H9qzTbveF/n5ugPV9q5';
-    const pass = '1234';
-    let hola = bcrypt.compareSync(pass, hash);
-    console.log( bcrypt.compareSync("1234", hash));
+    const password = "12345";
+    const salt = bcrypt.genSaltSync(10);
+    let hash = await bcrypt.hash(password,salt);
+    let hashed = '$2a$10$9KYt.D2bW18MSbtj0nsFbejt51nOV/KYliiRXrAVzL0EvQ0KYYy7a';
+    console.log(hash);
+    let hola = await bcrypt.compare(password, hash);
+    console.log( await bcrypt.compare("1234", hashed));
     res.json(hola);
-});
+});*/
 
 function verifyToken(req,res,next){
     if(!req.headers.authorization) return res.status(401).json('No autorizado');
