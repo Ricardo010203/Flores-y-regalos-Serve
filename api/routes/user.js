@@ -62,9 +62,10 @@ router.put('/:id', (req,res) => {
 
 router.post('/', async (req,res) => {
     const { user, name, lastName, typeID, dni, phone, rol,  password } = req.body;
+    const habilitado = 1;
     const salt = bcrypt.genSaltSync(10);
     let passwordhash = await bcrypt.hash(password,salt);
-    mysqlConection.query(`insert into users ( user, name, lastName, typeID, dni, phone, rol, password) values ('${user}','${name}','${lastName}','${typeID}','${dni}','${phone}','${rol}','${passwordhash}')`,[user, name, lastName, typeID, dni, phone, rol, passwordhash],
+    mysqlConection.query(`insert into users ( user, name, lastName, typeID, dni, phone, rol, password, habilitado) values ('${user}','${name}','${lastName}','${typeID}','${dni}','${phone}','${rol}','${passwordhash}','${habilitado}')`,[user, name, lastName, typeID, dni, phone, rol, passwordhash, habilitado],
     (err,rows,field) =>{
         if(!err){
             

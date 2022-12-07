@@ -4,7 +4,7 @@ const router = express.Router();
 const mysqlConection = require('../conecctions/conecction');
 
 router.get('/', (req,res) =>{
-    mysqlConection.query('select * from providers', (err,rows,fields) =>{
+    mysqlConection.query('select * from providers where habilitado = 1', (err,rows,fields) =>{
         if(!err){
             res.json(rows);
         }else{
@@ -23,12 +23,23 @@ router.get('/:id', (req,res) =>{
         }
     })
 });
-
+/*
 router.delete('/:id', (req,res) => {
     const {id} = req.params;
     mysqlConection.query(`delete from providers where id = '${id}'`, [id], (err,rows,fields) =>{
         if(!err){
             res.json('Proveedor eliminado');
+        }else{
+            console.log(err);
+        }
+    })
+});*/
+
+router.delete('/:id', (req,res) => {
+    const {id} = req.params;
+    mysqlConection.query(`update providers set habilitado=0 where id = '${id}'`, [id], (err,rows,fields) =>{
+        if(!err){
+            res.json('Usuario eliminado');
         }else{
             console.log(err);
         }

@@ -3,7 +3,7 @@ const mysqlConection = require('../conecctions/conecction');
 const router = express.Router();
 
 router.get('/', (req,res) =>{
-    mysqlConection.query('SELECT producto.id, producto.price, producto.nombre, producto.stock, providers.name FROM `producto` INNER join providers on producto.idProvider = providers.id', 
+    mysqlConection.query('SELECT producto.id, producto.price, producto.nombre, producto.stock, providers.name FROM `producto` INNER join providers on producto.idProvider = providers.id where producto.habilitado = 1', 
     (err,rows,fields) =>{
         if(!err){
             res.json(rows);
@@ -65,6 +65,19 @@ router.put('/:id', async (req,res) => {
     })
 });
 
+
+router.delete('/:id', (req,res) => {
+    const {id} = req.params;
+    mysqlConection.query(`update producto set habilitado=0 where id = '${id}'`, [id], (err,rows,fields) =>{
+        if(!err){
+            res.json('Producto eliminado');
+        }else{
+            console.log(err);
+        }
+    })
+});
+
+/*
 router.delete('/:id', async (req,res) => {
     const { id } = req.params;
     mysqlConection.query(`delete from producto where id='${id}' `,[id],
@@ -77,7 +90,7 @@ router.delete('/:id', async (req,res) => {
             console.log(err);
         }
     })
-});
+});*/
 
 
 
