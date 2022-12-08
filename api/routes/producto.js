@@ -37,8 +37,9 @@ router.post('/name', (req,res) =>{
 
 router.post('/:id', async (req,res) => {
     const { id } = req.params;
+    const habilitado = 1;   
     const { nombre, description, price, stock} = req.body;
-    mysqlConection.query(`insert into producto ( nombre, description, price, stock, idProvider) values ('${nombre}','${description}','${price}','${stock}','${id}')`,[id, nombre, description, price, stock],
+    mysqlConection.query(`insert into producto ( nombre, description, price, stock, idProvider, habilitado) values ('${nombre}','${description}','${price}','${stock}','${id}','${habilitado}')`,[id, nombre, description, price, stock, habilitado],
     (err,rows,field) =>{
         if(!err){
             

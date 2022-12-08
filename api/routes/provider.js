@@ -59,8 +59,9 @@ router.put('/:id', (req,res) => {
 });
 
 router.post('/', async (req,res) => {
+    const habilitado = 1;
     const { name, nit, typeProduct, phone } = req.body;
-    mysqlConection.query(`insert into providers ( name, nit, typeProduct, phone) values ('${name}','${nit}','${typeProduct}','${phone}')`,[name, nit, typeProduct, phone],
+    mysqlConection.query(`insert into providers ( name, nit, typeProduct, phone, habilitado) values ('${name}','${nit}','${typeProduct}','${phone}','${habilitado}')`,[name, nit, typeProduct, phone, habilitado],
     (err,rows,field) =>{
         if(!err){
             
