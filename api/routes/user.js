@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 
 const mysqlConection = require('../conecctions/conecction');
 
@@ -48,10 +49,12 @@ router.delete('/:id', (req,res) => {
     })
 });*/
 
-router.put('/:id', (req,res) => {
+router.put('/:id', async(req,res) => {
     const {id} = req.params;
-    const { user, name, lastName, typeID, dni, phone, rol,  password } = req.body;
-    mysqlConection.query(`update users set user='${user}', name='${name}', lastName='${lastName}', typeID='${typeID}', dni='${dni}', phone='${phone}', rol='${rol}', password='${password}' where id='${id}'`, [id,user, name, lastName, typeID, dni, phone, rol, password],  (err,rows,fields) =>{
+    const { user, email, name, lastName, typeID, dni, phone, rol,  password } = req.body;
+    const salt = bcrypt.genSaltSync(10);
+    let passwordhash = await bcrypt.hash(password,salt);
+    mysqlConection.query(`update users set user='${user}', email='${email}', name='${name}', lastName='${lastName}', typeID='${typeID}', dni='${dni}', phone='${phone}', rol='${rol}', password='${passwordhash}' where id='${id}'`, [id,user, email, name, lastName, typeID, dni, phone, rol, passwordhash],  (err,rows,fields) =>{
         if(!err){
             res.json('Usuario editado');
         }else{
@@ -61,11 +64,11 @@ router.put('/:id', (req,res) => {
 });
 
 router.post('/', async (req,res) => {
-    const { user, name, lastName, typeID, dni, phone, rol,  password } = req.body;
+    const { user, email, name, lastName, typeID, dni, phone, rol,  password } = req.body;
     const habilitado = 1;
     const salt = bcrypt.genSaltSync(10);
     let passwordhash = await bcrypt.hash(password,salt);
-    mysqlConection.query(`insert into users ( user, name, lastName, typeID, dni, phone, rol, password, habilitado) values ('${user}','${name}','${lastName}','${typeID}','${dni}','${phone}','${rol}','${passwordhash}','${habilitado}')`,[user, name, lastName, typeID, dni, phone, rol, passwordhash, habilitado],
+    mysqlConection.query(`insert into users ( user, email, name, lastName, typeID, dni, phone, rol, password, habilitado) values ('${user}','${email}','${name}','${lastName}','${typeID}','${dni}','${phone}','${rol}','${passwordhash}','${habilitado}')`,[user, email, name, lastName, typeID, dni, phone, rol, passwordhash, habilitado],
     (err,rows,field) =>{
         if(!err){
             
@@ -112,6 +115,45 @@ router.post('/rol', async (req,res) =>{
 
 router.post('/test', verifyToken,(req,res) =>{
     res.json('Informacion secreta');
+});
+
+router.post('/recuperar', async(req,res) => {
+    const {user} = req.body;
+    mysqlConection.query(`select * from users where user ='${user}'`, [user], async(err,rows,fields) =>{
+        if(!err){
+            if(rows.length > 0){
+                let transporter = nodemailer.createTransport({
+                    host: "smtp.gmail.com",
+                    port: 465,
+                    secure: true, // true for 465, false for other ports
+                    auth: {
+                      user: 'regalosyflorescali03@gmail.com', // generated ethereal user
+                      pass: 'kpngnkvwikjsruqi', // generated ethereal password
+                    },
+                  });
+            
+                transporter.verify().then(() => {
+                    console.log('listo para enviar emails');
+                })
+                
+                let info = await transporter.sendMail({
+                    from: '"Recuperar contraseña" <regalosyflorescali03@gmail.com>', // sender address
+                    to: rows[0].email, // list of receivers
+                    subject: "Hello ✔", // Subject line
+                    text: rows[0].password, // plain text body
+                    html: `<a href="http://localhost:4200/editarpassword/${rows[0].id}" >Modificar contraseña</a>`, // html body
+                  });
+                
+                  console.log("Message sent: %s", info.messageId);
+                  res.json('Correo enviado')
+            }else{
+                res.json('No existe ese usuario')
+            }
+        }else{
+            console.log(err);
+        }
+    })
+    
 });
 
 /*
